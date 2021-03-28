@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/button_patient"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Patient"
+        app:icon="@drawable/ic_patient_invert"
+        app:iconSize="45dp"
+        style="@style/Widget.MaterialComponents.Button.Icon"
+        />
+
+    <Button
+        android:id="@+id/button_practitioner"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Practitioner"
+        app:icon="@drawable/ic_practitioner_invert"
+        app:iconSize="45dp"
+        style="@style/Widget.MaterialComponents.Button.Icon"
+        />
+
+</LinearLayout>
