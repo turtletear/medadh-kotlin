@@ -1,5 +1,5 @@
 package com.gagapps.medadh.dataClassPatient
 
-data class Photo(
-    val uri: String
+data class NamePatient(
+    val given: String
 )

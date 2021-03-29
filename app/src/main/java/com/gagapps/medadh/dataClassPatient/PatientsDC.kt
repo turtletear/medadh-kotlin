@@ -1,7 +1,7 @@
 package com.gagapps.medadh.dataClassPatient
 
 data class PatientsDC(
-        val `data`: Data,
+        val dataPatient: DataPatient,
         val status: String,
         val token: String
 )

@@ -1,15 +1,15 @@
 package com.gagapps.medadh.dataClassPatient
 
-data class Data(
+data class DataPatient(
         val __v: Int,
         val _id: String,
         val createdAt: String,
-        val extension: Extension,
+        val extensionPatient: ExtensionPatient,
         val gender: String,
         val generalPractitioner: List<Any>,
-        val name: Name,
-        val photo: Photo,
+        val namePatient: NamePatient,
+        val photoPatient: PhotoPatient,
         val resourceType: String,
-        val telecom: Telecom,
+        val telecomPatient: TelecomPatient,
         val updatedAt: String
 )
