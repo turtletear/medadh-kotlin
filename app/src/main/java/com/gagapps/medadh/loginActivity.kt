@@ -2,6 +2,7 @@ package com.gagapps.medadh
 
 import android.app.ProgressDialog
 import android.content.Context
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -66,6 +67,8 @@ class loginActivity : AppCompatActivity(), View.OnClickListener {
                                 loading.isDismiss()
                                 val data = response.body()
                                 Toast.makeText(applicationContext, "Login Success!", Toast.LENGTH_LONG).show()
+                                val moveIntent = Intent(this@loginActivity, PatientDashboardActivity::class.java)
+                                startActivity(moveIntent)
                                 //to patient home screen
                             }
                             else {
