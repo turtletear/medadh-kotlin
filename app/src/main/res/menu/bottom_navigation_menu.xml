@@ -15,6 +15,11 @@
         android:title="Add Reminder"/>
 
     <item
+        android:id="@+id/it_bluetooth"
+        android:icon="@drawable/ic_bluetooth"
+        android:title="Connect Device"/>
+
+    <item
         android:id="@+id/it_profile"
         android:icon="@drawable/ic_user"
         android:title="Profile"/>

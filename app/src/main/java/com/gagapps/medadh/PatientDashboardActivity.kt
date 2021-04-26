@@ -3,10 +3,7 @@ package com.gagapps.medadh
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import com.gagapps.medadh.fragments.AddReminderFragment
-import com.gagapps.medadh.fragments.AdherenceFragment
-import com.gagapps.medadh.fragments.HomeFragment
-import com.gagapps.medadh.fragments.ProfileFragment
+import com.gagapps.medadh.fragments.*
 import kotlinx.android.synthetic.main.activity_patient_dashboard.*
 
 class PatientDashboardActivity : AppCompatActivity() {
@@ -20,7 +17,7 @@ class PatientDashboardActivity : AppCompatActivity() {
         val adhFrag = AdherenceFragment()
         val reminderFrag = AddReminderFragment()
         val profFrag = ProfileFragment()
-
+        val blueFrag = BluetoothFragment()
         makeCurrentFragment(homeFrag)
 
         bottom_navigation.setOnNavigationItemSelectedListener{
@@ -29,6 +26,7 @@ class PatientDashboardActivity : AppCompatActivity() {
                 R.id.it_adherence -> makeCurrentFragment(adhFrag)
                 R.id.it_reminder -> makeCurrentFragment(reminderFrag)
                 R.id.it_profile -> makeCurrentFragment(profFrag)
+                R.id.it_bluetooth -> makeCurrentFragment(blueFrag)
             }
             true
         }
