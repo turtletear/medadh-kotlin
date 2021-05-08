@@ -5,18 +5,40 @@
     android:layout_height="match_parent"
     tools:context=".fragments.BluetoothFragment">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:paddingBottom="5dp"
+            >
+
+            <ImageView
+                android:id="@+id/bluetooth_image"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:src="@drawable/ic_bluetooth_on"
+                />
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/btSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:checked="false" />
+        </LinearLayout>
 
         <Button
-            android:id="@+id/bt_enable"
+            android:id="@+id/bt_scanDevice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Enable Bluetooth"
-            android:layout_centerInParent="true"
+            android:text="Scan Devices"
+            android:layout_gravity="center"
             />
-
-    </RelativeLayout>
+    </LinearLayout>
 
 </FrameLayout>
