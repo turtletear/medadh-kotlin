@@ -1,31 +1,33 @@
 package com.gagapps.medadh.fragments
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
-import androidx.fragment.app.Fragment
+import android.os.ParcelUuid
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.Toast
-import com.gagapps.medadh.R
-import kotlinx.android.synthetic.main.fragment_bluetooth.*
-
-import android.os.Handler
-import android.util.Log
-import androidx.core.content.ContextCompat
-import android.Manifest;
-import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import com.gagapps.medadh.R
 import com.gagapps.medadh.fragments.dialogFragments.BtDevicesDialogFragment
 import com.gagapps.medadh.loadingClass.LoadingDialog
+import kotlinx.android.synthetic.main.fragment_bluetooth.*
+import java.lang.NullPointerException
 
-// TODO: Rename parameter arguments, choose names that match
+
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
@@ -43,6 +45,8 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
     private val REQUEST_CODE_ENABLE_BT: Int = 1
     private val FINE_LOCATION_PERMISSION_REQUEST: Int = 1001
     private var deviceList: ArrayList<ScanResult> = arrayListOf()
+    private val dialog = BtDevicesDialogFragment()
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,10 +86,20 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        bAdapter = BluetoothAdapter.getDefaultAdapter()
 
-        bt_scanDevice.setOnClickListener(this)
-        btSwitch.setOnCheckedChangeListener(this)
+        try {
+            bAdapter = BluetoothAdapter.getDefaultAdapter()
+            bt_scanDevice.setOnClickListener(this)
+            btSwitch.setOnCheckedChangeListener(this)
+        }catch (e: NullPointerException){
+            Toast.makeText(activity, "Device doesn't support Bluetooth", Toast.LENGTH_LONG).show()
+        }
+//        val checkBT = context?.packageManager?.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)
+//        Log.d("bleDevice", checkBT.toString())
+//        if (bAdapter == null){
+//            Toast.makeText(activity, "Device doesn't support Bluetooth", Toast.LENGTH_LONG).show()
+//        }
+
     }//end func
 
     override fun onClick(v: View?) {
@@ -115,7 +129,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
     }//end func
 
     private fun  btScan(){
-        val bluetoothLeScanner: BluetoothLeScanner? = bAdapter?.bluetoothLeScanner
+        val bluetoothLeScanner: BluetoothLeScanner? = bAdapter.bluetoothLeScanner
         var scanning = false
         val handler = Handler(Looper.getMainLooper())
         val SCAN_PERIOD: Long = 5000
@@ -142,7 +156,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
             val loading = LoadingDialog(requireActivity())
             val bundle = Bundle()
             bundle.putParcelableArrayList("DeviceList", deviceList)
-            val dialog = BtDevicesDialogFragment()
+
             val mFragmentManager = childFragmentManager
             loading.startLoading()
             handler.postDelayed({
@@ -181,14 +195,22 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
         }
     }
 
-    private fun connectDevice(){
-        //continue here. . . . .
+    private fun connectDevice(device: BluetoothDevice?){
+        Toast.makeText( requireContext(), "Connect to:  " + device?.name, Toast.LENGTH_SHORT).show()
+        dialog.dismiss()
     }
 
     internal var optionDialogListener: BtDevicesDialogFragment.OnOptionDialogListener = object :BtDevicesDialogFragment.OnOptionDialogListener{
         override fun onDeviceSelect(device: ScanResult?) {
-            Toast.makeText( requireContext(), "(FROM BTFRAGMENT)Connect to:  " + device?.device?.address, Toast.LENGTH_SHORT).show()
+            val bleDevice = device?.device
+            val listId: MutableList<ParcelUuid>? = device?.scanRecord?.serviceUuids
+            Log.d("bleDevice", "list len: {${listId?.get(0)}} ")
+            connectDevice(bleDevice)
         }
+
+    }
+
+    private fun gattCallback(){
 
     }
 
