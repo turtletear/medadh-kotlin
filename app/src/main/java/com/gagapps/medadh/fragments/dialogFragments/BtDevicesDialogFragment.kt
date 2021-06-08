@@ -1,18 +1,16 @@
 package com.gagapps.medadh.fragments.dialogFragments
 
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.gagapps.medadh.R
 import com.gagapps.medadh.adapters.DeviceListAdapter
+import com.gagapps.medadh.btUtilClass.BlueteethParcelable
 import com.gagapps.medadh.fragments.BluetoothFragment
 import kotlinx.android.synthetic.main.fragment_bt_devices_dialog.*
 
@@ -28,11 +26,16 @@ private const val ARG_PARAM2 = "param2"
  */
 class BtDevicesDialogFragment : DialogFragment() {
 
-    private var devices: ArrayList<ScanResult>? = null
+    private var devices: ArrayList<BlueteethParcelable>? = null
     private var optionDialogListener: OnOptionDialogListener? = null
+    private var cancelButtonListener: OnCancelButtonListener? = null
 
     interface OnOptionDialogListener {
-        fun onDeviceSelect(device: ScanResult?)
+        fun onDeviceSelect(device: BlueteethParcelable)
+    }
+
+    interface OnCancelButtonListener{
+        fun onCancelButtonPress()
     }
 
     override fun onAttach(context: Context) {
@@ -42,12 +45,14 @@ class BtDevicesDialogFragment : DialogFragment() {
         if(parent is BluetoothFragment){
             val bluetoothFragment = parent
             this.optionDialogListener = bluetoothFragment.optionDialogListener
+            this.cancelButtonListener = bluetoothFragment.cancelButtonListener
         }
     }
 
     override fun onDetach() {
         super.onDetach()
         this.optionDialogListener = null
+        this.cancelButtonListener = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,7 +96,7 @@ class BtDevicesDialogFragment : DialogFragment() {
         rv_bt_list.setHasFixedSize(true)
         showRecyclerList()
 
-        fd_cancel.setOnClickListener { dismiss() }
+        fd_cancel.setOnClickListener { buttonCancel() }
 
     }
 
@@ -100,7 +105,7 @@ class BtDevicesDialogFragment : DialogFragment() {
         val listHeroAdapter = DeviceListAdapter(devices)
         rv_bt_list.adapter = listHeroAdapter
         listHeroAdapter.setOnItemClickCallback(object : DeviceListAdapter.OnItemClickCallback{
-            override fun onItemClicked(data: ScanResult) {
+            override fun onItemClicked(data: BlueteethParcelable) {
                 selectDevice(data)
             }
 
@@ -108,12 +113,17 @@ class BtDevicesDialogFragment : DialogFragment() {
 
     }
 
-    private fun selectDevice(device: ScanResult){
+    private fun selectDevice(device: BlueteethParcelable){
         if(optionDialogListener != null){
             optionDialogListener?.onDeviceSelect(device)
         }
-        //dismiss()
-
     }
+
+    private fun buttonCancel(){
+        if(cancelButtonListener != null){
+            cancelButtonListener?.onCancelButtonPress()
+        }
+    }
+
 
 }

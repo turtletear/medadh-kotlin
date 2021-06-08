@@ -7,9 +7,10 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.gagapps.medadh.R
+import com.gagapps.medadh.btUtilClass.BlueteethParcelable
 
 
-class DeviceListAdapter(private val listDevice: ArrayList<ScanResult>?): RecyclerView.Adapter<DeviceListAdapter.ListViewHolder>() {
+class DeviceListAdapter(private val listDevice: ArrayList<BlueteethParcelable>?): RecyclerView.Adapter<DeviceListAdapter.ListViewHolder>() {
 
     lateinit var onItemClickCallback: OnItemClickCallback
 
@@ -33,8 +34,8 @@ class DeviceListAdapter(private val listDevice: ArrayList<ScanResult>?): Recycle
         val device = listDevice?.get(position)
 
         if (device != null) {
-            holder.tvDeviceName.text = device.device.name
-            holder.tvDeviceAddress.text = device.device.address
+            holder.tvDeviceName.text = device.deviceName
+            holder.tvDeviceAddress.text = device.deviceAddress
         }
         holder.itemView.setOnClickListener { onItemClickCallback.onItemClicked(listDevice!![holder.bindingAdapterPosition]) }
     }
@@ -45,7 +46,7 @@ class DeviceListAdapter(private val listDevice: ArrayList<ScanResult>?): Recycle
 
 
     interface OnItemClickCallback {
-        fun onItemClicked(data: ScanResult)
+        fun onItemClicked(data: BlueteethParcelable)
     }
 
 
