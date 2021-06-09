@@ -22,10 +22,15 @@ import com.gagapps.medadh.loadingClass.LoadingDialog
 import com.robotpajamas.blueteeth.BlueteethDevice
 import com.robotpajamas.blueteeth.BlueteethManager
 import com.robotpajamas.blueteeth.BlueteethResponse
+import com.robotpajamas.blueteeth.BlueteethUtils
+import com.robotpajamas.blueteeth.listeners.OnCharacteristicReadListener
+import com.robotpajamas.blueteeth.listeners.OnCharacteristicWriteListener
 import com.robotpajamas.blueteeth.listeners.OnServicesDiscoveredListener
 import kotlinx.android.synthetic.main.fragment_bluetooth.*
 import timber.log.Timber
 import java.io.IOException
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -45,10 +50,13 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
     private val REQUEST_CODE_ENABLE_BT: Int = 1
     private val FINE_LOCATION_PERMISSION_REQUEST: Int = 1001
     private val DEVICE_SCAN_MILLISECONDS: Int = 3000
+    private val SERVICE_UUID: UUID = UUID.fromString("0000FFE0-0000-1000-8000-00805F9B34FB")
+    private val CHARACTERISTIC_UUID: UUID = UUID.fromString("0000FFE1-0000-1000-8000-00805F9B34FB")
     var CONNECT_STATUS: Int = 0
 
     private var deviceDataList: ArrayList<BlueteethParcelable> = arrayListOf() //save device name and address
     private var extBlueteethDevice: List<BlueteethDevice> = listOf()
+    private lateinit var selectedBTDevice: BlueteethDevice
     private val dialog = BtDevicesDialogFragment()
 
 
@@ -59,6 +67,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
+
 
     }
 
@@ -95,6 +104,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
             bAdapter = BluetoothAdapter.getDefaultAdapter()
             bt_scanDevice.setOnClickListener(this)
             btSwitch.setOnCheckedChangeListener(this)
+            Log.d("Blueteeth", "receive this")
 
         }catch (e: NullPointerException){
             Toast.makeText(activity, "Device doesn't support Bluetooth", Toast.LENGTH_LONG).show()
@@ -181,11 +191,13 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
     private fun connectDevice(device: BlueteethParcelable?): BlueteethDevice? {
         val foundDevice: BlueteethDevice? = searchDeviceWithAddress(device?.deviceAddress)
         if(foundDevice != null){
-            discoverService(foundDevice)
             foundDevice.connect(false) { isConnected ->
                 Log.d("Blueteeth", "Is Connected: ${isConnected}")
+                discoverService(foundDevice)
+                sendData(foundDevice,"1")
             }
             CONNECT_STATUS = 1
+            selectedBTDevice = foundDevice
             Toast.makeText( requireContext(), "Connected to:  " + device?.deviceName, Toast.LENGTH_SHORT).show()
         }
         else{
@@ -193,6 +205,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
         }
         dialog.dismiss()
         deviceDataList.clear()
+        BlueteethManager.with(context).stopScanForPeripherals()
         return foundDevice
     }
     private fun searchDeviceWithAddress(address: String?): BlueteethDevice? {
@@ -200,29 +213,59 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
         for (device in extBlueteethDevice){
             if(device.macAddress.equals(address)){
                 result = device
+                break
             }
         }
         return result
     }
     private fun discoverService(device: BlueteethDevice?){
         try {
-            device?.discoverServices(OnServicesDiscoveredListener { response ->
-                if (response !== BlueteethResponse.NO_ERROR) {
+            device?.discoverServices{ response ->
+                if (response != BlueteethResponse.NO_ERROR) {
                     Log.e("Blueteeth", "Discovery error ${response.name}")
                 }
-                Log.d("Blueteeth", "Discovered services... Can now try to read/write...") })
+                Log.d("Blueteeth", "Discovered services... Can now try to read/write...") }
         }catch (e: IOException){
-            Log.e("Blueteeth", "Discovery error")
+            Log.e("Blueteeth", "Discovery error, ${e.message}")
         }
 
+    }
+
+    private fun sendData(device: BlueteethDevice?, data: String){
+        val dataSend = data.toByteArray()
+        try {
+            if (device != null) {
+                BlueteethUtils.writeData(dataSend, CHARACTERISTIC_UUID, SERVICE_UUID, device, OnCharacteristicWriteListener { response ->
+                    if (response != BlueteethResponse.NO_ERROR){
+                        Log.e("Blueteeth", "Write characteristic error!")
+                    }
+                    Log.d("Blueteeth", "Characteristic sent!")
+                })
+            }
+        } catch (e: IOException){
+            Log.e("Blueteeth", "Error ${e.message}")
+        }
+    }
+
+    private fun receiveData(device: BlueteethDevice?){
+        try {
+            if (device != null) {
+                BlueteethUtils.read(CHARACTERISTIC_UUID, SERVICE_UUID, device, OnCharacteristicReadListener { response, data ->
+                    if (response != BlueteethResponse.NO_ERROR){
+                        Log.e("Blueteeth", "Write characteristic error!")
+                    }
+                    Log.d("Blueteeth", "Data receive: ${data}")
+                })
+            }
+        } catch (e: IOException){
+            Log.e("Blueteeth", "Error ${e.message}")
+        }
     }
 
     internal var optionDialogListener: BtDevicesDialogFragment.OnOptionDialogListener = object :BtDevicesDialogFragment.OnOptionDialogListener{
         override fun onDeviceSelect(device: BlueteethParcelable) {
             val bleDevice = device
             val connectedDevice = connectDevice(bleDevice)
-
-
         }
 
     }
@@ -231,6 +274,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
         override fun onCancelButtonPress() {
             dialog.dismiss()
             deviceDataList.clear()
+            BlueteethManager.with(context).stopScanForPeripherals()
         }
 
     }
