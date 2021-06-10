@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.gagapps.medadh.R
 import com.gagapps.medadh.btUtilClass.BlueteethParcelable
+import com.gagapps.medadh.btUtilClass.BtReceiveThread
 import com.gagapps.medadh.fragments.dialogFragments.BtDevicesDialogFragment
 import com.gagapps.medadh.loadingClass.LoadingDialog
 import com.robotpajamas.blueteeth.BlueteethDevice
@@ -25,9 +26,7 @@ import com.robotpajamas.blueteeth.BlueteethResponse
 import com.robotpajamas.blueteeth.BlueteethUtils
 import com.robotpajamas.blueteeth.listeners.OnCharacteristicReadListener
 import com.robotpajamas.blueteeth.listeners.OnCharacteristicWriteListener
-import com.robotpajamas.blueteeth.listeners.OnServicesDiscoveredListener
 import kotlinx.android.synthetic.main.fragment_bluetooth.*
-import timber.log.Timber
 import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
@@ -191,17 +190,24 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
     private fun connectDevice(device: BlueteethParcelable?): BlueteethDevice? {
         val foundDevice: BlueteethDevice? = searchDeviceWithAddress(device?.deviceAddress)
         if(foundDevice != null){
-            foundDevice.connect(false) { isConnected ->
-                Log.d("Blueteeth", "Is Connected: ${isConnected}")
-                discoverService(foundDevice)
-                sendData(foundDevice,"1")
+            try {
+                foundDevice.connect(false) { isConnected ->
+                    Log.d("Blueteeth", "Is Connected: ${isConnected}")
+                    //discoverService(foundDevice)
+                    sendData(foundDevice,"1")
+                    var receiveThread = BtReceiveThread(foundDevice, CHARACTERISTIC_UUID, SERVICE_UUID)
+                    receiveThread.start()
+                }
+                CONNECT_STATUS = 1
+                selectedBTDevice = foundDevice
+                Toast.makeText( requireContext(), "Connected to:  " + device?.deviceName, Toast.LENGTH_SHORT).show()
+            } catch (e: Exception){
+                Toast.makeText( requireContext(), "Failed to connect to:  " + device?.deviceName, Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
             }
-            CONNECT_STATUS = 1
-            selectedBTDevice = foundDevice
-            Toast.makeText( requireContext(), "Connected to:  " + device?.deviceName, Toast.LENGTH_SHORT).show()
         }
         else{
-            Toast.makeText( requireContext(), "Failed to connect to:  " + device?.deviceName, Toast.LENGTH_SHORT).show()
+            Toast.makeText( requireContext(), "Can not connect to selected device", Toast.LENGTH_SHORT).show()
         }
         dialog.dismiss()
         deviceDataList.clear()
