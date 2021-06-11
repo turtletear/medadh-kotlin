@@ -1,17 +1,18 @@
 package com.gagapps.medadh.fragments
 
 import android.Manifest
+import android.app.Service
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.ParcelUuid
+import android.os.*
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -22,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.gagapps.medadh.R
+import com.gagapps.medadh.btUtils.BluetoothLeService
 import com.gagapps.medadh.fragments.dialogFragments.BtDevicesDialogFragment
 import com.gagapps.medadh.loadingClass.LoadingDialog
 import kotlinx.android.synthetic.main.fragment_bluetooth.*
@@ -46,6 +48,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
     private val FINE_LOCATION_PERMISSION_REQUEST: Int = 1001
     private var deviceList: ArrayList<ScanResult> = arrayListOf()
     private val dialog = BtDevicesDialogFragment()
+    private var bluetoothService : BluetoothLeService? = null
 
 
 
@@ -86,7 +89,6 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         try {
             bAdapter = BluetoothAdapter.getDefaultAdapter()
             bt_scanDevice.setOnClickListener(this)
@@ -94,11 +96,6 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
         }catch (e: NullPointerException){
             Toast.makeText(activity, "Device doesn't support Bluetooth", Toast.LENGTH_LONG).show()
         }
-//        val checkBT = context?.packageManager?.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)
-//        Log.d("bleDevice", checkBT.toString())
-//        if (bAdapter == null){
-//            Toast.makeText(activity, "Device doesn't support Bluetooth", Toast.LENGTH_LONG).show()
-//        }
 
     }//end func
 
@@ -196,22 +193,44 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
     }
 
     private fun connectDevice(device: BluetoothDevice?){
-        Toast.makeText( requireContext(), "Connect to:  " + device?.name, Toast.LENGTH_SHORT).show()
+        Toast.makeText( requireContext(), "Connected to:  " + device?.name, Toast.LENGTH_SHORT).show()
         dialog.dismiss()
+        val serviceConnection: ServiceConnection = object : ServiceConnection {
+            override fun onServiceConnected(
+                componentName: ComponentName,
+                service: IBinder
+            ) {
+                Log.d("bleDevice", "Masuk sini")
+                bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
+                bluetoothService?.let { bluetooth ->
+                    if (!bluetooth.initialize()) {
+                        Log.e("bleDevice", "Unable to initialize Bluetooth")
+                        //finish()
+                    }
+                    // perform device connection
+                    bluetooth.connect(device?.address)
+                }
+            }
+            override fun onServiceDisconnected(componentName: ComponentName) {
+                bluetoothService = null
+            }
+        }
+        val gattServiceIntent = Intent(context, BluetoothLeService::class.java)
+        activity?.bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
+
+
+
 
     internal var optionDialogListener: BtDevicesDialogFragment.OnOptionDialogListener = object :BtDevicesDialogFragment.OnOptionDialogListener{
         override fun onDeviceSelect(device: ScanResult?) {
             val bleDevice = device?.device
             val listId: MutableList<ParcelUuid>? = device?.scanRecord?.serviceUuids
-            Log.d("bleDevice", "list len: {${listId?.get(0)}} ")
+            //Log.d("bleDevice", "list len: {${listId?.get(0)}} ")
             connectDevice(bleDevice)
         }
 
     }
 
-    private fun gattCallback(){
-
-    }
 
 }
