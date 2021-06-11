@@ -7,9 +7,10 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.gagapps.medadh.R
+import com.gagapps.medadh.btUtils.RxBleParcelable
 
 
-class DeviceListAdapter(private val listDevice: ArrayList<ScanResult>?): RecyclerView.Adapter<DeviceListAdapter.ListViewHolder>() {
+class DeviceListAdapter(private val listDevice: ArrayList<RxBleParcelable>?): RecyclerView.Adapter<DeviceListAdapter.ListViewHolder>() {
 
     lateinit var onItemClickCallback: OnItemClickCallback
 
@@ -33,8 +34,8 @@ class DeviceListAdapter(private val listDevice: ArrayList<ScanResult>?): Recycle
         val device = listDevice?.get(position)
 
         if (device != null) {
-            holder.tvDeviceName.text = device.device.name
-            holder.tvDeviceAddress.text = device.device.address
+            holder.tvDeviceName.text = device.name
+            holder.tvDeviceAddress.text = device.adress
         }
         holder.itemView.setOnClickListener { onItemClickCallback.onItemClicked(listDevice!![holder.bindingAdapterPosition]) }
     }
@@ -43,9 +44,8 @@ class DeviceListAdapter(private val listDevice: ArrayList<ScanResult>?): Recycle
         return listDevice?.size!!
     }
 
-
     interface OnItemClickCallback {
-        fun onItemClicked(data: ScanResult)
+        fun onItemClicked(data: RxBleParcelable)
     }
 
 
