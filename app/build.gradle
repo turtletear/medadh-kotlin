@@ -56,7 +56,10 @@ dependencies {
     // Annotation processor
     kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
 
+    //BLE LIB
     implementation 'com.robotpajamas.blueteeth:blueteeth:0.2.0'
+    implementation "com.polidea.rxandroidble2:rxandroidble:1.12.1"
+
 
 
     testImplementation 'junit:junit:4.13.2'

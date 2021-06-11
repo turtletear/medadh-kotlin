@@ -195,7 +195,8 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
                     Log.d("Blueteeth", "Is Connected: ${isConnected}")
                     //discoverService(foundDevice)
                     sendData(foundDevice,"1")
-                    var receiveThread = BtReceiveThread(foundDevice, CHARACTERISTIC_UUID, SERVICE_UUID)
+
+                    var receiveThread = BtReceiveThread(foundDevice, CHARACTERISTIC_UUID, SERVICE_UUID, context)
                     receiveThread.start()
                 }
                 CONNECT_STATUS = 1
@@ -256,11 +257,11 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
     private fun receiveData(device: BlueteethDevice?){
         try {
             if (device != null) {
-                BlueteethUtils.read(CHARACTERISTIC_UUID, SERVICE_UUID, device, OnCharacteristicReadListener { response, data ->
-                    if (response != BlueteethResponse.NO_ERROR){
-                        Log.e("Blueteeth", "Write characteristic error!")
+                device.readCharacteristic(CHARACTERISTIC_UUID, SERVICE_UUID, OnCharacteristicReadListener { response, data ->
+                    if(response != BlueteethResponse.NO_ERROR){
+                        Log.d("Blueteeth","Read Error")
                     }
-                    Log.d("Blueteeth", "Data receive: ${data}")
+                    Log.d("Blueteeth", "Data received: ${data.toString()}")
                 })
             }
         } catch (e: IOException){
