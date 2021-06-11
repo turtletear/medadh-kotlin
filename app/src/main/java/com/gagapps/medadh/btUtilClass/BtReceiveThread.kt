@@ -2,6 +2,7 @@ package com.gagapps.medadh.btUtilClass
 
 import android.util.Log
 import com.robotpajamas.blueteeth.BlueteethDevice
+import com.robotpajamas.blueteeth.BlueteethManager
 import com.robotpajamas.blueteeth.BlueteethResponse
 import com.robotpajamas.blueteeth.BlueteethUtils
 import com.robotpajamas.blueteeth.listeners.OnCharacteristicReadListener
@@ -23,6 +24,7 @@ class BtReceiveThread(device: BlueteethDevice?, charUUID: UUID, servUUID: UUID):
                     while (data != null){
                         Thread.sleep(1000)
                         Log.d("Blueteeth", "Data receive: ${data}")
+                        Log.d("Blueteeth", "Data receive: ${response}")
                     }
                 })
             }
