@@ -17,14 +17,16 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.gagapps.medadh.R
-import com.gagapps.medadh.btUtils.BluetoothLeService
+import io.reactivex.Observable
 import com.gagapps.medadh.btUtils.RxBleParcelable
 import com.gagapps.medadh.fragments.dialogFragments.BtDevicesDialogFragment
 import com.gagapps.medadh.loadingClass.LoadingDialog
+import com.jakewharton.rx3.ReplayingShare
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.scan.ScanSettings
+import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_bluetooth.*
 import java.util.*
 
@@ -45,13 +47,14 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
     lateinit var bAdapter: BluetoothAdapter
     private val REQUEST_CODE_ENABLE_BT: Int = 1
     private val FINE_LOCATION_PERMISSION_REQUEST: Int = 1001
+    private var CONNECT_STATUS: Int = 0
     private var deviceList: ArrayList<RxBleDevice> = arrayListOf()
     private val dialog = BtDevicesDialogFragment()
-    private var bluetoothService : BluetoothLeService? = null
     lateinit var rxBleClient: RxBleClient
     private var deviceDataList: ArrayList<RxBleParcelable> = arrayListOf() //save device name and address
-    private var extRxBleDevice: List<RxBleDevice> = listOf() //save device
-
+    private val CHARACTERISTIC_UUID: UUID = UUID.fromString("0000FFE1-0000-1000-8000-00805F9B34FB")
+    private lateinit var connectionObservable: Observable<RxBleConnection>
+    private val disconnectTriggerSubject = PublishSubject.create<Unit>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,7 +96,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
         super.onViewCreated(view, savedInstanceState)
         try {
             bAdapter = BluetoothAdapter.getDefaultAdapter()
-            rxBleClient = RxBleClient.create(context!!)
+            rxBleClient = RxBleClient.create(requireContext())
             bt_scanDevice.setOnClickListener(this)
             btSwitch.setOnCheckedChangeListener(this)
             allowLocationDetectionPermissions()
@@ -141,7 +144,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
             val bundle = Bundle()
 
             loading.startLoading()
-            val scanSubscription = rxBleClient!!.scanBleDevices(
+            val scanSubscription = rxBleClient.scanBleDevices(
                 ScanSettings.Builder()
                     .build()
             )
@@ -152,10 +155,10 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
                             deviceDataList.add(deviceParcelable)
                             deviceList.add(scanResult.bleDevice)
                         }
-                    }
-                ) { throwable: Throwable? ->
+                    }, { throwable: Throwable? ->
                         Log.e("rxBLE", "Error obtaining device")
-                }
+                    }
+                )
 
             handler.postDelayed({
                 loading.isDismiss()
@@ -164,7 +167,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
                 dialog.arguments = bundle
                 dialog.isCancelable = false
                 val mFragmentManager = childFragmentManager
-                dialog.show(mFragmentManager!!, BtDevicesDialogFragment::class.java.simpleName)
+                dialog.show(mFragmentManager, BtDevicesDialogFragment::class.java.simpleName)
                 Log.d("rxBLE", "Device data obtain : ${deviceDataList.size}")
                 Log.d("rxBLE", "Device obtain : ${deviceList.size}")
             }, SCAN_PERIOD)
@@ -191,22 +194,36 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
         }
     }
 
+    private fun prepareConnectionObservable(device: RxBleDevice): Observable<RxBleConnection> =
+        device.establishConnection(false)
+            .takeUntil(disconnectTriggerSubject)
+            .compose(ReplayingShare.instance<RxBleConnection>())
+
+
+
     private fun connectDevice(device: RxBleParcelable?){
         try {
             val macAddress = device?.adress
-            val device = macAddress?.let { rxBleClient.getBleDevice(it) }
-
-            val disposable = device?.establishConnection(false) // <-- autoConnect flag
-                ?.subscribe(
+            val foundDevice: RxBleDevice? = findDevice(macAddress)
+            val device = foundDevice
+            connectionObservable = device?.let { prepareConnectionObservable(it) }!!
+            connectionObservable.subscribe(
                     { rxBleConnection: RxBleConnection? ->
                         Log.d("rxBLE", "Connected to: ${device?.name}")
-                        Toast.makeText( requireContext(), "Connected to:  " + device?.name, Toast.LENGTH_SHORT).show()
+                        CONNECT_STATUS = 1
+                    },
+                    { throwable: Throwable? ->
+                        Log.e("rxBLE", "Failed to connect to: ${device?.name}")
+                        throwable?.printStackTrace()
                     }
-                ) { throwable: Throwable? ->
-                    Log.e("rxBLE", "Failed to connect to: ${device?.name}")
-                    throwable?.printStackTrace()
-                }
+                )
+            Toast.makeText(activity, "Connected to ${device?.name}", Toast.LENGTH_SHORT).show()
+            val handlre = Handler(Looper.getMainLooper())
+            handlre.postDelayed({
+                writeToDevice(connectionObservable, "1")
+            }, 3000)
         } catch (e: Exception){
+            Toast.makeText(activity, "Failed to connect to ${device?.name}", Toast.LENGTH_SHORT).show()
             e.printStackTrace()
         }
 
@@ -216,8 +233,36 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
 
     }
 
+    private fun findDevice(address: String?): RxBleDevice? {
+        var rxDevice: RxBleDevice? = null
+        for (device in deviceList){
+            if (device.macAddress.equals(address)){
+                rxDevice = device
+                break
+            }
+        }
+        return rxDevice
 
+    }
 
+    private  fun writeToDevice(device: Observable<RxBleConnection>, data: String){
+        val dataSend = data.toByteArray()
+        try {
+            device
+                .firstOrError()
+                .flatMap { it.writeCharacteristic(CHARACTERISTIC_UUID, dataSend) }
+                .subscribe( {
+                        data: ByteArray? ->
+                    Log.d("rxBLE", "Data sent!")
+                }
+                    , { throwable: Throwable ->
+                    throwable.printStackTrace()
+                    Log.d("rxBLE", "Failed to sent")
+                })
+        } catch (e: Exception){
+            e.printStackTrace()
+        }
+    }
 
     internal var optionDialogListener: BtDevicesDialogFragment.OnOptionDialogListener = object :BtDevicesDialogFragment.OnOptionDialogListener{
         override fun onDeviceSelect(device: RxBleParcelable?) {

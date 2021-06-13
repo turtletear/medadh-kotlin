@@ -57,7 +57,7 @@ dependencies {
     kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
 
     implementation "com.polidea.rxandroidble2:rxandroidble:1.12.1"
-
+    implementation 'com.jakewharton.rx3:replaying-share-kotlin:3.0.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
