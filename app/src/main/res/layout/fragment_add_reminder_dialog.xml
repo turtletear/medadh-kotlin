@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="5dp">
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/med_menu"
+        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:hint="Medication">
+
+        <AutoCompleteTextView
+            android:id="@+id/med_menu_drop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="6dp"
+        >
+        <!--TEXT INPUT-->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tfDosage"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:hint="Dosage"
+            android:layout_marginRight="10dp"
+            >
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tfDosageText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!--DROPDOWN MENU-->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/unit_menu"
+            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+            android:layout_width="170dp"
+            android:layout_height="wrap_content"
+            android:hint="Unit">
+            <AutoCompleteTextView
+                android:id="@+id/unit_menu_drop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+    <!--TEXT INPUT-->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tfNote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:hint="Note"
+        >
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/tfNoteText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:orientation="horizontal"
+        >
+        <Button
+            android:id="@+id/btSetTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set Time"
+            app:icon="@drawable/ic_reminder"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center|bottom"
+        android:padding="10dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/warning_red"
+            android:layout_marginRight="10dp"
+            android:text="Cancel" />
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/light_green"
+            android:text="Save" />
+
+
+    </LinearLayout>
+
+
+</LinearLayout>
