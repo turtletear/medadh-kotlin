@@ -1,4 +1,3 @@
-import kotlin.Experimental
 
 plugins {
     id 'com.android.application'
