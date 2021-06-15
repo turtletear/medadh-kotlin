@@ -13,7 +13,7 @@ class MyBroadcastReceiver: BroadcastReceiver() {
                     Log.d("Mantap", bundle.getString("Message").toString())
             }
             val notifyMe = Notifications()
-            notifyMe.notify(context!!, "ini notifikasi minum obat")
+            notifyMe.notify(context!!, "Take your medicine in time!")
         }
     }
 }

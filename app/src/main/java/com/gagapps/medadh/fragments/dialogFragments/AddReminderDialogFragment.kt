@@ -1,6 +1,8 @@
 package com.gagapps.medadh.fragments.dialogFragments
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,37 +10,60 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
-import android.widget.EditText
 import android.widget.TextView
-import androidx.annotation.ContentView
 import androidx.fragment.app.DialogFragment
-import com.gagapps.medadh.Notifications
 import com.gagapps.medadh.R
 import com.gagapps.medadh.alarmUtil.AlarmData
 import com.gagapps.medadh.alarmUtil.AlarmLogic
-import com.gagapps.medadh.databinding.FragmentAddReminderDialogBinding
+import com.gagapps.medadh.fragments.AddReminderFragment
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.fragment_add_reminder_dialog.*
-import java.lang.Exception
+import java.lang.reflect.Type
+
+
+var alarmList = arrayListOf<AlarmLogic>()
+var dummyList = arrayListOf<String>()
+lateinit var textClock : TextView
+lateinit var textMed : TextView
+lateinit var textDos : TextView
+lateinit var textUnit : TextView
+lateinit var textNote : TextView
 
 class AddReminderDialogFragment: DialogFragment() {
+
+    private lateinit var saveButtonListener:  OnSaveButtonListener
+    interface OnSaveButtonListener {
+        fun onSavePress()
+    }
+    fun doOnSavePress(){
+        saveButtonListener.onSavePress()
+    }
+
+    private lateinit var cancelButtonListener:  OnCancelButtonListener
+    interface OnCancelButtonListener {
+        fun onCancelPress()
+    }
+    fun doOnCancelPress(){
+        cancelButtonListener.onCancelPress()
+    }
+
+
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         var myInflater = inflater.inflate(R.layout.fragment_add_reminder_dialog, container, false)
         return myInflater
     }
 
-    lateinit var alarmLogic: AlarmLogic
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        var textClock = view.findViewById(R.id.tvClock) as TextView
-        var textMed = view.findViewById(R.id.med_menu_drop) as TextView
-        var textDos = view.findViewById(R.id.tfDosageText) as TextView
-        var textUnit = view.findViewById(R.id.unit_menu_drop) as TextView
-        var textNote = view.findViewById(R.id.tfNoteText) as TextView
-
-        this.alarmLogic = AlarmLogic(requireContext())
+        textClock = view.findViewById(R.id.tvClock) as TextView
+        textMed = view.findViewById(R.id.med_menu_drop) as TextView
+        textDos = view.findViewById(R.id.tfDosageText) as TextView
+        textUnit = view.findViewById(R.id.unit_menu_drop) as TextView
+        textNote = view.findViewById(R.id.tfNoteText) as TextView
 
         val picker =
                 MaterialTimePicker.Builder()
@@ -51,20 +76,18 @@ class AddReminderDialogFragment: DialogFragment() {
         picker.addOnPositiveButtonClickListener {
             val hour = picker.hour
             val minute = picker.minute
-            if (hour>10)
-                textClock.text = hour.toString()+ ":"+minute.toString()
-            else
-                textClock.text = "0"+hour.toString()+ ":0"+minute.toString()
+            val clockShow = showClock(hour, minute)
+            textClock.text = clockShow
         }
 
         btSetTime.setOnClickListener {
             fragmentManager?.let { it1 -> picker.show(it1, "reminder") }
         }
 
+
         btnCancel.setOnClickListener {
+            doOnCancelPress()
             clearForm(textMed, textDos, textUnit, textNote)
-            cancelAlarm()
-            dismiss()
         }
 
         btnSave.setOnClickListener {
@@ -75,20 +98,26 @@ class AddReminderDialogFragment: DialogFragment() {
             val medication = textMed.text.toString()
             val note = textNote.text.toString()
 
-            val alarmData = AlarmData(hour, minute, dose, unit, medication, note)
-
-
-            Log.d("Mantap", "Medication: ${medication}, Dosage ${dose}${unit}")
-            Log.d("Mantap", "Reminder set. Hour: ${hour}, Minute: ${minute}")
-            Log.d("Mantap", "Note : ${note}")
-
             //add alarm logic
-            setAlarm(alarmData)
             //save alarm data to local storage
+//            val size = alarmList.size
+//            if (size == 0){
+//                val alarmData = AlarmData(hour, minute, dose, unit, medication, note,0)
+//                val newAlarm = addNewAlarm(alarmData)
+//                alarmList.add(newAlarm)
+//            }
+//            else{
+//                val alarmData = AlarmData(hour, minute, dose, unit, medication, note,size)
+//                val newAlarm = addNewAlarm(alarmData)
+//                alarmList.add(newAlarm)
+//            }
+
 
             //dismiss fragment
             clearForm(textMed, textDos, textUnit, textNote)
-            dismiss()
+            //saveListData(dummyList)
+
+            doOnSavePress()
 
         }
     }
@@ -105,6 +134,16 @@ class AddReminderDialogFragment: DialogFragment() {
         (unit_menu.editText as? AutoCompleteTextView)?.setAdapter(unit_adapter)
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        val parent = parentFragment
+        if (parent is AddReminderFragment){
+            val addReminderFragment = parent
+            this.cancelButtonListener = addReminderFragment.cancelButtonListener
+            this.saveButtonListener = addReminderFragment.saveButtonListener
+        }
+    }
+
     private fun clearForm(med: TextView, dos: TextView, unit: TextView, note: TextView){
         med.text = ""
         dos.text = ""
@@ -112,12 +151,16 @@ class AddReminderDialogFragment: DialogFragment() {
         note.text = ""
     }
 
-    private fun setAlarm(data: AlarmData){
-        alarmLogic.SetAlarm(data.hour, data.minute)
-    }
+    private fun showClock(hour: Int,minute: Int): String {
+        var h = hour.toString()
+        var m = minute.toString()
 
-    private fun cancelAlarm(){
-        alarmLogic.cancelAlarm()
+        if(hour <= 10)
+            h = "0"+h
+        if (minute <= 10)
+            m = "0"+m
+
+        return "${h}:${m}"
     }
 
 }

@@ -10,20 +10,24 @@ import java.util.*
 
 class AlarmLogic {
     var context: Context? = null
-    lateinit var alarmManager: AlarmManager
-    lateinit var intent: Intent
-    lateinit var pendIntent: PendingIntent
+    var alarmManager: AlarmManager
+    var intent: Intent
+    var pendIntent: PendingIntent
+    var alarmData: AlarmData
 
-    constructor (context: Context){
+    constructor (context: Context, alarmData: AlarmData){
         this.context = context
         this.alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         this.intent = Intent(context, MyBroadcastReceiver::class.java)
+        this.alarmData = alarmData
         intent.putExtra("Message", "Alarm Time")
         intent.action = "com.gagapps.medadh.alarmmanager"
-        this.pendIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        this.pendIntent = PendingIntent.getBroadcast(context, alarmData.reqCode , intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
-    fun SetAlarm(hour: Int, minute: Int){
+    fun setAlarm(){
+        val hour = alarmData.hour
+        val minute = alarmData.minute
         val calendar = Calendar.getInstance().apply {
             timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, hour)
@@ -32,14 +36,20 @@ class AlarmLogic {
             set(Calendar.MILLISECOND, 0)
         }
 
-
         alarmManager.setRepeating(
             AlarmManager.RTC_WAKEUP,
             calendar.timeInMillis,
             AlarmManager.INTERVAL_DAY,
             pendIntent)
+        Log.d("Mantap", "Alarm saved! Alarm ReqCode: ${alarmData.reqCode}")
+    }
 
-        Log.d("Mantap", "set alarm complete")
+    fun getAlrmManager(): AlarmManager {
+        return alarmManager
+    }
+
+    fun getAlrmData(): AlarmData {
+        return alarmData
     }
 
     fun cancelAlarm(){

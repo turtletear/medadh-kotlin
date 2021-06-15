@@ -11,7 +11,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 
 class Notifications() {
-    val NOTIFYTAG = "Medication Reminder"
+    val NOTIFYTAG = "MedAdh"
     lateinit var notificationChannel: NotificationChannel
     private val channelId = "medadh"
     private val description = "Test notification"

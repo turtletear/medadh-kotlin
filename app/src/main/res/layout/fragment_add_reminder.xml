@@ -26,10 +26,11 @@
         android:orientation="vertical"
         android:padding="10dp"
         >
-        <TextView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_alarm"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Disini Card list alarm yg sudah ada"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/item_row_alarm"
             />
 
     </LinearLayout>

@@ -6,5 +6,6 @@ data class AlarmData (
     var dose: Int,
     var unit: String,
     var medication: String,
-    var note: String
+    var note: String,
+    var reqCode: Int
 )
