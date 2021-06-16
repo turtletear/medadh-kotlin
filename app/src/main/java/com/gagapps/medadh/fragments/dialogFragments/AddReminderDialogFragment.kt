@@ -23,14 +23,14 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.fragment_add_reminder_dialog.*
 import java.lang.reflect.Type
 
-
-var alarmList = arrayListOf<AlarmLogic>()
-var dummyList = arrayListOf<String>()
 lateinit var textClock : TextView
 lateinit var textMed : TextView
 lateinit var textDos : TextView
 lateinit var textUnit : TextView
 lateinit var textNote : TextView
+lateinit var picker : MaterialTimePicker
+
+
 
 class AddReminderDialogFragment: DialogFragment() {
 
@@ -65,7 +65,7 @@ class AddReminderDialogFragment: DialogFragment() {
         textUnit = view.findViewById(R.id.unit_menu_drop) as TextView
         textNote = view.findViewById(R.id.tfNoteText) as TextView
 
-        val picker =
+        picker =
                 MaterialTimePicker.Builder()
                         .setTimeFormat(TimeFormat.CLOCK_24H)
                         .setHour(0)
@@ -101,23 +101,18 @@ class AddReminderDialogFragment: DialogFragment() {
             //add alarm logic
             //save alarm data to local storage
 //            val size = alarmList.size
+//            var alarmData : AlarmData
 //            if (size == 0){
-//                val alarmData = AlarmData(hour, minute, dose, unit, medication, note,0)
-//                val newAlarm = addNewAlarm(alarmData)
-//                alarmList.add(newAlarm)
+//                alarmData = AlarmData(hour, minute, dose, unit, medication, note,0)
 //            }
 //            else{
-//                val alarmData = AlarmData(hour, minute, dose, unit, medication, note,size)
-//                val newAlarm = addNewAlarm(alarmData)
-//                alarmList.add(newAlarm)
+//                alarmData = AlarmData(hour, minute, dose, unit, medication, note,size)
 //            }
 
 
             //dismiss fragment
-            clearForm(textMed, textDos, textUnit, textNote)
-            //saveListData(dummyList)
-
             doOnSavePress()
+            clearForm(textMed, textDos, textUnit, textNote)
 
         }
     }

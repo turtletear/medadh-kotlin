@@ -9,9 +9,11 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.gagapps.medadh.R
 
-class ListAlarmAdapter(private val listAlarm: ArrayList<String>): RecyclerView.Adapter<ListAlarmAdapter.ListViewHolder>() {
+class ListAlarmAdapter(private val listAlarm: ArrayList<AlarmData>): RecyclerView.Adapter<ListAlarmAdapter.ListViewHolder>() {
     private lateinit var onItemClickCallback: OnItemClickCallback
-
+    interface OnItemClickCallback {
+        fun onItemClicked(data: AlarmData, index: Int)
+    }
     fun setOnItemClickCallback(onItemClickCallback: OnItemClickCallback){
         this.onItemClickCallback = onItemClickCallback
     }
@@ -31,9 +33,9 @@ class ListAlarmAdapter(private val listAlarm: ArrayList<String>): RecyclerView.A
     override fun onBindViewHolder(holder: ListViewHolder, position: Int) {
         val data = listAlarm[position]
 
-        holder.tvMedName.text = data
-        holder.tvClock.text = data
-        holder.tvDose.text = data
+        holder.tvMedName.text = data.medication
+        holder.tvClock.text = showClock(data.hour, data.minute)
+        holder.tvDose.text = data.dose.toString()+" "+ data.unit
 
         holder.btDel.setOnClickListener {
             onItemClickCallback.onItemClicked(listAlarm[holder.adapterPosition], position)
@@ -44,7 +46,18 @@ class ListAlarmAdapter(private val listAlarm: ArrayList<String>): RecyclerView.A
         return listAlarm.size
     }
 
-    interface OnItemClickCallback {
-        fun onItemClicked(data: String, index: Int)
+
+
+    private fun showClock(hour: Int,minute: Int): String {
+        var h = hour.toString()
+        var m = minute.toString()
+
+        if(hour < 10)
+            h = "0"+h
+        if (minute < 10)
+            m = "0"+m
+
+        return "${h}:${m}"
     }
+
 }

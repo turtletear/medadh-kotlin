@@ -1,5 +1,6 @@
 package com.gagapps.medadh.fragments
 
+import android.app.AlarmManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -12,12 +13,13 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.gagapps.medadh.R
+import com.gagapps.medadh.alarmUtil.AlarmData
+import com.gagapps.medadh.alarmUtil.AlarmLogic
 import com.gagapps.medadh.alarmUtil.ListAlarmAdapter
 import com.gagapps.medadh.fragments.dialogFragments.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.fragment_add_reminder.*
-import kotlinx.android.synthetic.main.item_row_alarm.*
 import java.lang.reflect.Type
 
 // TODO: Rename parameter arguments, choose names that match
@@ -35,7 +37,9 @@ class AddReminderFragment : Fragment() {
     private var param2: String? = null
 
     private lateinit var rvAlarm: RecyclerView
-    private var alarmList = arrayListOf<String>()
+    private var alarmLogicList = arrayListOf<AlarmLogic>()
+
+    private var alarmList = arrayListOf<AlarmData>()
     private val dialog = AddReminderDialogFragment()
     private lateinit var listAlarmAdapter: ListAlarmAdapter
 
@@ -47,6 +51,8 @@ class AddReminderFragment : Fragment() {
         }
 
         alarmList = loadListData()
+        alarmLogicList = resetAndLoadAlarmLogic()
+        Log.d("Mantap", "List size: ${alarmList.size}")
         listAlarmAdapter = ListAlarmAdapter(alarmList)
 
     }
@@ -94,30 +100,30 @@ class AddReminderFragment : Fragment() {
         }
     }
 
-    private fun showRecyclerList(dataList: ArrayList<String>){
+    private fun showRecyclerList(dataList: ArrayList<AlarmData>){
 
         rvAlarm.layoutManager = LinearLayoutManager(requireContext())
         rvAlarm.adapter = listAlarmAdapter
 
         listAlarmAdapter.setOnItemClickCallback(object : ListAlarmAdapter.OnItemClickCallback{
-            override fun onItemClicked(data: String, index: Int) {
+            override fun onItemClicked(data: AlarmData, index: Int) {
                 deleteData(index)
-                Toast.makeText(requireContext(), "Delete: ${data} from main fragment at index: ${index}", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Alarm deleted!", Toast.LENGTH_LONG).show()
             }
         })
 
     }
 
 
-    private fun loadListData(): ArrayList<String> {
-        var loadedList = arrayListOf<String>()
+    private fun loadListData(): ArrayList<AlarmData> {
+        var loadedList = arrayListOf<AlarmData>()
         try {
             val sharedPreferences: SharedPreferences =
                 activity!!.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
             val gson = Gson()
-            val json = sharedPreferences.getString("data list", null)
-            val type: Type = object : TypeToken<ArrayList<String?>?>() {}.type
-            loadedList = gson.fromJson<Any>(json, type) as ArrayList<String>
+            val json = sharedPreferences.getString("data alarm list", null)
+            val type: Type = object : TypeToken<ArrayList<AlarmData?>?>() {}.type
+            loadedList = gson.fromJson<Any>(json, type) as ArrayList<AlarmData>
 
             return loadedList
         } catch (e: Exception){
@@ -127,33 +133,50 @@ class AddReminderFragment : Fragment() {
     }
 
 
-    private fun saveListData(dataList: ArrayList<String>){
+    private fun saveListData(dataList: ArrayList<AlarmData>){
         try {
             val sharedPreferences: SharedPreferences =
                 activity!!.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
             val editor = sharedPreferences.edit()
             val gson = Gson()
             val json = gson.toJson(dataList)
-            editor.putString("data list", json)
+            editor.putString("data alarm list", json)
             editor.apply()
             Log.d("Mantap", "the whole list is saved")
         } catch (e: Exception){
+            Log.e("Mantap", e.message.toString())
             e.printStackTrace()
         }
     }
 
+    private fun resetAndLoadAlarmLogic(): ArrayList<AlarmLogic> {
+        var alarmLogicList = arrayListOf<AlarmLogic>()
+        if (alarmList.size  != 0 ){
+            for (data in alarmList){
+                val newAlarmLogic = AlarmLogic(requireContext(), data)
+                newAlarmLogic.setAlarm()
+                alarmLogicList.add(newAlarmLogic)
+            }
+        }
+        return alarmLogicList
+        Log.d("Mantap", "Reset & Reload Alarm Logic Complete")
+    }
+
+
     private fun deleteData(index: Int){
+        val reqCode = alarmList[index].reqCode
+        val alrmLogic = findAlarmLogic(reqCode)
+        alrmLogic!!.cancelAlarm()
         alarmList.removeAt(index)
-        //alarmManager.cancel()
         try {
             val sharedPreferences: SharedPreferences =
                 activity!!.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
             val editor = sharedPreferences.edit()
             val gson = Gson()
             val json = gson.toJson(alarmList)
-            editor.putString("data list", json)
+            editor.putString("data alarm list", json)
             editor.apply()
-            Log.d("Mantap", "the whole list is saved")
+            Log.d("Mantap", "the whole list is updated")
             listAlarmAdapter.notifyDataSetChanged()
         } catch (e: Exception){
             e.printStackTrace()
@@ -171,31 +194,52 @@ class AddReminderFragment : Fragment() {
 
     internal val saveButtonListener: AddReminderDialogFragment.OnSaveButtonListener = object : AddReminderDialogFragment.OnSaveButtonListener{
         override fun onSavePress() {
-
-//            val hour = picker.hour
-//            val minute = picker.minute
-//            val dose = textDos.text.toString().toInt()
-//            val unit = textUnit.text.toString()
-//            val medication = textMed.text.toString()
-//            val note = textNote.text.toString()
+            val hour = picker.hour
+            val minute = picker.minute
+            val dose = textDos.text.toString().toInt()
+            val unit = textUnit.text.toString()
+            val medication = textMed.text.toString()
+            val note = textNote.text.toString()
 
             val size = alarmList.size
+            val reqCode = (0..500).random() + size + hour + minute
+            val statDef = "Oncoming"
+
             if (size == 0){
-                val value = "Data ke:"+size
-                alarmList.add(value)
+                val alarmData = AlarmData(hour, minute, dose, unit, medication, note,0, statDef)
+                alarmList.add(alarmData)
+                addNewAlarm(alarmData)
                 listAlarmAdapter.notifyDataSetChanged()
-                Log.d("Mantap", "Data saved with value: ${value}")
+                Log.d("Mantap", "Data saved")
             }
             else{
-                val value = "Data ke:"+size
-                alarmList.add(value)
+                val alarmData = AlarmData(hour, minute, dose, unit, medication, note,reqCode, statDef)
+                alarmList.add(alarmData)
+                addNewAlarm(alarmData)
                 listAlarmAdapter.notifyDataSetChanged()
-                Log.d("Mantap", "Data saved with value: ${value}")
+                Log.d("Mantap", "Data saved")
             }
             saveListData(alarmList)
             dialog.dismiss()
         }
 
+    }
+
+    private fun addNewAlarm(data: AlarmData) {
+        val alarm : AlarmLogic
+        alarm = AlarmLogic(requireContext(), data)
+        alarm.setAlarm()
+        alarmLogicList.add(alarm)
+    }
+
+    private fun findAlarmLogic(reqCode: Int): AlarmLogic? {
+        var retDat: AlarmLogic? = null
+        for (data in alarmLogicList){
+            if (data.reqCode == reqCode){
+                retDat = data
+            }
+        }
+        return retDat
     }
 
 }
