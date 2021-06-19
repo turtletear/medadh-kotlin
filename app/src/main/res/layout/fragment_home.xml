@@ -47,12 +47,13 @@
             android:layout_marginTop="30dp"
             >
             <TextView
+                android:id="@+id/tv_user_banner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
                 android:textColor="@color/black"
                 android:textSize="20dp"
-                android:text="Today's Reminder"
+                android:text="Today's Reminder for user"
                 />
 
         </LinearLayout>

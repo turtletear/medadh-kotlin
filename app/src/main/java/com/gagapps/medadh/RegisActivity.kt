@@ -6,10 +6,7 @@ import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.widget.*
-import com.gagapps.medadh.dataClassPatient.DataPatient
-import com.gagapps.medadh.dataClassPatient.NamePatient
 import com.gagapps.medadh.dataClassPatient.PatientsDC
-import com.gagapps.medadh.dataClassPatient.TelecomPatient
 import com.gagapps.medadh.dataClassPatient.dataBodyReq.ExtensionPatientBodyReq
 import com.gagapps.medadh.dataClassPatient.dataBodyReq.NamePatientBodyReq
 import com.gagapps.medadh.dataClassPatient.dataBodyReq.PatientBodyReq
@@ -20,7 +17,6 @@ import com.google.android.material.textfield.TextInputLayout
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.regex.Pattern
 
 class RegisActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -133,10 +129,6 @@ class RegisActivity : AppCompatActivity(), View.OnClickListener {
                             Toast.makeText(this@RegisActivity, "Login Failed!", Toast.LENGTH_LONG).show()
                         }
                     })
-//                    txName.text.clear()
-//                    txEmail.text.clear()
-//                    txUsername.text.clear()
-//                    txPass.text.clear()
                     return
                 }
             }

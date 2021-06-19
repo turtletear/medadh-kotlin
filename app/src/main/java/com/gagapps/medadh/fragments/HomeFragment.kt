@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.gagapps.medadh.ProfileDC
 import com.gagapps.medadh.R
 import com.gagapps.medadh.alarmUtil.AlarmData
 import com.gagapps.medadh.alarmUtil.ListAlarmAdapter
@@ -43,6 +44,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var rvHomeAlarm: RecyclerView
     private var alarmList = arrayListOf<AlarmData>()
+    private var profileData: ProfileDC? = null
     private lateinit var listAlarmHomeAdapter: ListAlarmHomeAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +55,7 @@ class HomeFragment : Fragment() {
         }
         alarmList = loadListData()
         listAlarmHomeAdapter = ListAlarmHomeAdapter(alarmList)
+        profileData = loadProfileData()
 
     }
 
@@ -92,6 +95,8 @@ class HomeFragment : Fragment() {
             val fulldate = LocalDate.now().dayOfMonth.toString()+ " " + LocalDate.now().month + " " + LocalDate.now().year
             tv_home_date.text = fulldate
         }
+        val name = profileData!!.name
+        tv_user_banner.text = "Today's Reminder for " + name
 
         rvHomeAlarm = view.findViewById(R.id.rv_home_alarm)
         rvHomeAlarm.setHasFixedSize(true)
@@ -160,11 +165,28 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun loadProfileData(): ProfileDC? {
+        var profile : ProfileDC
+        try {
+            val sharedPreferences: SharedPreferences =
+                requireActivity().getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+            val gson = Gson()
+            val json = sharedPreferences.getString("data Profile", null)
+            //val type: Type = object : TypeToken<ProfileDC?>() {}.type
+            profile = gson.fromJson(json, ProfileDC::class.java)
+            Log.d("medAdh", "load profile success ${profile.name}")
+            return profile
+        } catch (e: Exception){
+            e.printStackTrace()
+            return null
+        }
+    }
+
     private fun loadListData(): ArrayList<AlarmData> {
         var loadedList = arrayListOf<AlarmData>()
         try {
             val sharedPreferences: SharedPreferences =
-                activity!!.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+                requireActivity().getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
             val gson = Gson()
             val json = sharedPreferences.getString("data alarm list", null)
             val type: Type = object : TypeToken<ArrayList<AlarmData?>?>() {}.type
@@ -181,7 +203,7 @@ class HomeFragment : Fragment() {
     private fun saveListData(dataList: ArrayList<AlarmData>){
         try {
             val sharedPreferences: SharedPreferences =
-                activity!!.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+                requireActivity().getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
             val editor = sharedPreferences.edit()
             val gson = Gson()
             val json = gson.toJson(dataList)

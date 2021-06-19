@@ -1,6 +1,6 @@
 package com.gagapps.medadh.dataClassPatient
 
-data class TelecomPatient(
+data class Telecom(
     val system: String,
     val value: String
 )

@@ -119,7 +119,7 @@ class AddReminderFragment : Fragment() {
         var loadedList = arrayListOf<AlarmData>()
         try {
             val sharedPreferences: SharedPreferences =
-                activity!!.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+                requireActivity().getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
             val gson = Gson()
             val json = sharedPreferences.getString("data alarm list", null)
             val type: Type = object : TypeToken<ArrayList<AlarmData?>?>() {}.type
@@ -136,7 +136,7 @@ class AddReminderFragment : Fragment() {
     private fun saveListData(dataList: ArrayList<AlarmData>){
         try {
             val sharedPreferences: SharedPreferences =
-                activity!!.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+                requireActivity().getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
             val editor = sharedPreferences.edit()
             val gson = Gson()
             val json = gson.toJson(dataList)
@@ -170,7 +170,7 @@ class AddReminderFragment : Fragment() {
         alarmList.removeAt(index)
         try {
             val sharedPreferences: SharedPreferences =
-                activity!!.getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
+                requireActivity().getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
             val editor = sharedPreferences.edit()
             val gson = Gson()
             val json = gson.toJson(alarmList)
@@ -210,14 +210,14 @@ class AddReminderFragment : Fragment() {
                 alarmList.add(alarmData)
                 addNewAlarm(alarmData)
                 listAlarmAdapter.notifyDataSetChanged()
-                Log.d("Mantap", "Data saved")
+                Log.d("Mantap", "ReportData saved")
             }
             else{
                 val alarmData = AlarmData(hour, minute, dose, unit, medication, note,reqCode, statDef)
                 alarmList.add(alarmData)
                 addNewAlarm(alarmData)
                 listAlarmAdapter.notifyDataSetChanged()
-                Log.d("Mantap", "Data saved")
+                Log.d("Mantap", "ReportData saved")
             }
             saveListData(alarmList)
             dialog.dismiss()

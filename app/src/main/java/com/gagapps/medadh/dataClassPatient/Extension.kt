@@ -1,8 +1,8 @@
 package com.gagapps.medadh.dataClassPatient
 
-data class ExtensionPatient(
-    val diagnosticReport: List<Any>,
-    val medicationStatment: List<Any>,
+data class Extension(
+    val diagnosticReport: List<String>,
+    val medicationStatment: List<String>,
     val password: String,
     val requestSent: List<Any>,
     val username: String
