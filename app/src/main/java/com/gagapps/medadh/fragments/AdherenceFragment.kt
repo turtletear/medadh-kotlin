@@ -2,7 +2,9 @@ package com.gagapps.medadh.fragments
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -14,12 +16,16 @@ import com.gagapps.medadh.RetrofitInstance
 import com.gagapps.medadh.dataClassReport.ReportDC
 import com.gagapps.medadh.interfaces.PatientsServices
 import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.data.Entry
 import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.logging.Handler
+import android.os.Handler
+import androidx.core.content.ContextCompat
+import com.gagapps.medadh.dataClassMedState.MedStateDC
+import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.PercentFormatter
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -37,7 +43,11 @@ class AdherenceFragment : Fragment() {
     private var param2: String? = null
     private var profileData: ProfileDC? = null
     private var reportsData: ReportDC? = null
-    private var entries = arrayListOf<Entry>()
+    private var medStatesData: MedStateDC? = null
+    private var reportEntries = arrayListOf<Entry>()
+    private var medStateEntries = arrayListOf<Entry>()
+    val handler = Handler(Looper.getMainLooper())
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,14 +92,16 @@ class AdherenceFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val lineChart: LineChart = view.findViewById(R.id.line_chart)
-        val token = ""
-        reportsData = getAllReportReq(profileData?.id, profileData?.token)
-        // TODO: Add handler to wait the response
+        val pieChart: PieChart = view.findViewById(R.id.pie_chart)
+
+        reportsData = getAllReportReq(profileData?.id, profileData?.token, lineChart)
+        medStatesData = getAllMedStateReq(profileData?.id, profileData?.token, pieChart)
 
 
     }
 
-    private fun getAllReportReq(patientId: String?, token: String?): ReportDC? {
+
+    private fun getAllReportReq(patientId: String?, token: String?, lineChart: LineChart): ReportDC? {
         var reportData: ReportDC? = null
         val restService: PatientsServices = RetrofitInstance
             .getRetrofitInstance()
@@ -97,12 +109,13 @@ class AdherenceFragment : Fragment() {
         val reqCall = restService.getAllPatientReport(patientId, "Bearer "+token)
         reqCall.enqueue(object : Callback<ReportDC>{
             override fun onResponse(call: Call<ReportDC>, response: Response<ReportDC>) {
-                Log.d("medAdh", "response message: ${response.message()}")
-                Log.d("medAdh", "response: ${response.body()}")
                 if(response.message() == "OK"){
                     val data = response.body()
                     if (data != null) {
                         reportData = data
+                        val lineData = initReportEntryArray(reportData!!)
+                        lineChart.data = lineData
+                        lineChart.invalidate()
                     }
                 }
                 else
@@ -117,6 +130,121 @@ class AdherenceFragment : Fragment() {
         return reportData
     }
 
+    private fun initReportEntryArray(report_data: ReportDC): LineData {
+        var entryList = arrayListOf<Entry>()
+        val reportsList = report_data.data
+        var lineData: LineData = LineData()
+        if (reportsList != null) {
+            var itr = 0
+            for (i in reportsList){
+                itr++
+                val bcrablVal = i.extension.bcr_abl.value.toFloat()
+                val entryData = Entry(itr.toFloat(), bcrablVal)
+                entryList.add(entryData)
+            }//end for
+
+            val dataSet: LineDataSet = LineDataSet(entryList, "BCR/ABL")
+            dataSet.color = R.color.black
+            dataSet.valueTextColor = Color.LTGRAY
+            dataSet.setDrawFilled(true)
+            lineData = LineData(dataSet)
+
+        }//end if
+        return lineData
+    }
+
+    private fun getAllMedStateReq(patientId: String?, token: String?, pieChart: PieChart): MedStateDC? {
+        var reportData: MedStateDC? = null
+        val restService: PatientsServices = RetrofitInstance
+            .getRetrofitInstance()
+            .create(PatientsServices::class.java)
+        val reqCall = restService.getAllPatientMedState(patientId, "Bearer "+token)
+        reqCall.enqueue(object : Callback<MedStateDC>{
+            override fun onResponse(call: Call<MedStateDC>, response: Response<MedStateDC>) {
+                if(response.message() == "OK"){
+                    val data = response.body()
+                    if (data != null) {
+                        val msData = data
+                        var pieData = initMedStateEntryArray(msData)
+                        val ttlPercent = getTotalMSPercentage(msData)
+                        pieData.setValueFormatter(PercentFormatter(pieChart))
+                        pieChart.setCenterText(ttlPercent)
+                        pieChart.setCenterTextSize(25f)
+                        pieChart.data = pieData
+                        pieChart.invalidate()
+                    }
+                }
+                else
+                    Log.d("medAdh", "Fail to load patient Medication Statement data")
+            }
+
+            override fun onFailure(call: Call<MedStateDC>, t: Throwable) {
+                Log.d("medAdh", "<ON FAILURE> Fail to load patient Medication Statement data")
+            }
+
+        })
+        return reportData
+    }
+
+    private fun initMedStateEntryArray(medState_data: MedStateDC): PieData {
+        var pieEntry = arrayListOf<PieEntry>()
+        val medStatesList = medState_data.data
+        var colorList = arrayListOf<Int>()
+        colorList.add(ContextCompat.getColor(requireContext(), R.color.light_green))
+        colorList.add(ContextCompat.getColor(requireContext(), R.color.light_grey))
+        var data = PieData()
+        var listOfZero = arrayListOf<Float>()
+        var listOfOne = arrayListOf<Float>()
+        var totalSize = medStatesList?.size
+        if (medStatesList != null) {
+            var itr = 0
+            for (i in medStatesList){
+                itr++
+                val adhrncBool = i.extension.isLate
+                if (adhrncBool)
+                    listOfOne.add(1F)
+                else
+                    listOfZero.add(0F)
+            }//end for
+            val goodAdh = listOfOne.size.toFloat() / totalSize.toFloat() * 100
+            val badAdh = listOfZero.size.toFloat() / totalSize.toFloat() * 100
+            Log.d("medAdh", "Good percentage = ${String.format("%.1f", goodAdh)}")
+            Log.d("medAdh", "Bad percentage  = ${String.format("%.1f", badAdh)}")
+            pieEntry.add(PieEntry(goodAdh, ""))
+            pieEntry.add(PieEntry(badAdh, ""))
+
+            val dataSet = PieDataSet(pieEntry, "Adherence percentage")
+            dataSet.colors = colorList
+            data = PieData(dataSet)
+            data.setValueTextSize(0f)
+        }//end if
+
+        return data
+    }
+
+    private fun getTotalMSPercentage(medState_data: MedStateDC): String {
+        var totalPercent : String = "%"
+        var goodAdh: Float
+        val medStatesList = medState_data.data
+        var listOfZero = arrayListOf<Float>()
+        var listOfOne = arrayListOf<Float>()
+        var totalSize = medStatesList?.size
+        if (medStatesList != null) {
+            var itr = 0
+            for (i in medStatesList){
+                itr++
+                val adhrncBool = i.extension.isLate
+                if (adhrncBool)
+                    listOfOne.add(1F)
+                else
+                    listOfZero.add(0F)
+            }//end for
+        }//end if
+        goodAdh = listOfOne.size.toFloat() / totalSize.toFloat() * 100
+        return String.format("%.0f", goodAdh) + "%"
+    }
+
+
     private fun loadProfileData(): ProfileDC? {
         var profile : ProfileDC
         try {
@@ -124,13 +252,13 @@ class AdherenceFragment : Fragment() {
                 requireActivity().getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
             val gson = Gson()
             val json = sharedPreferences.getString("data Profile", null)
-            //val type: Type = object : TypeToken<ProfileDC?>() {}.type
             profile = gson.fromJson(json, ProfileDC::class.java)
-            Log.d("medAdh", "load profile success ${profile.name}")
             return profile
         } catch (e: Exception){
             e.printStackTrace()
             return null
         }
     }
+
+
 }

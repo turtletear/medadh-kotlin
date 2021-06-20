@@ -1,5 +1,6 @@
 package com.gagapps.medadh.interfaces
 
+import com.gagapps.medadh.dataClassMedState.MedStateDC
 import com.gagapps.medadh.dataClassPatient.LoginFormDC
 import com.gagapps.medadh.dataClassPatient.PatientsDC
 import com.gagapps.medadh.dataClassPatient.dataBodyReq.PatientBodyReq
@@ -15,8 +16,15 @@ interface PatientsServices {
     @POST("/auth/regis/patients")
     fun Regis(@Body bodyReq: PatientBodyReq): Call<PatientsDC>
 
+    @POST("/patients/reports")
+    fun createReport(@Body bodyReq: ReportDC)
+
     @GET("/patients/reports/{patientId}")
     fun getAllPatientReport(@Path("patientId") patientId: String?, @Header("Authorization") token: String?): Call<ReportDC>
+
+    @GET("/patients/medicationState/{patientId}")
+    fun getAllPatientMedState(@Path("patientId")patientId: String?, @Header("Authorization") token: String?): Call<MedStateDC>
+
 
 
 }
