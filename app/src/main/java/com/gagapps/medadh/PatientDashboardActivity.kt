@@ -11,8 +11,6 @@ class PatientDashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_patient_dashboard)
 
-
-
         val homeFrag = HomeFragment()
         val adhFrag = AdherenceFragment()
         val reminderFrag = AddReminderFragment()

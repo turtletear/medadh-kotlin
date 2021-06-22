@@ -11,7 +11,9 @@ import android.widget.Button
 import android.widget.Toast
 import com.gagapps.medadh.dataClassPatient.LoginFormDC
 import com.gagapps.medadh.dataClassPatient.PatientsDC
+import com.gagapps.medadh.dataClassPractitioner.singlePractitionerDC.SinglePractitionerDC
 import com.gagapps.medadh.interfaces.PatientsServices
+import com.gagapps.medadh.interfaces.PractitionerServices
 import com.gagapps.medadh.loadingClass.LoadingDialog
 import com.google.gson.Gson
 import retrofit2.Call
@@ -36,7 +38,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 loginAndSaveProfile("patient_dummy1", "pasword123")
             }
             R.id.button_practitioner -> {
-                Toast.makeText(applicationContext, "TO PRACTITIONER SECTION", Toast.LENGTH_LONG).show()
+                pracLoginAndSaveProfile("doctor_dummy1", "pasword123")
             }
         }
     }
@@ -47,17 +49,17 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         loading.startLoading()
         result.enqueue(object : Callback<PatientsDC> {
             override fun onResponse(call: Call<PatientsDC>, response: Response<PatientsDC>){
-                Log.d("TAG", "response: $response")
+
                 if (response.message()  == "OK"){
                     loading.isDismiss()
                     val data = response.body()
-                    Toast.makeText(applicationContext, "Login Success!", Toast.LENGTH_LONG).show()
                     val token = data?.token
                     val id = data?.data?._id
                     val uname = data?.data?.extension?.username
                     val name = data?.data?.name?.given
                     val profData = ProfileDC(uname, name, id, token)
                     saveProfileData(profData)
+                    Toast.makeText(applicationContext, "Login Success!", Toast.LENGTH_LONG).show()
                     //to patient home screen
                     val moveIntent = Intent(this@MainActivity, PatientDashboardActivity::class.java)
                     startActivity((moveIntent))
@@ -77,12 +79,55 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         return
     }
 
+    private fun pracLoginAndSaveProfile(username: String, pass: String){
+        val result = PracLoginReq(username, pass)
+        val loading = LoadingDialog(this)
+        loading.startLoading()
+        result.enqueue(object : Callback<SinglePractitionerDC>{
+            override fun onResponse(call: Call<SinglePractitionerDC>, response: Response<SinglePractitionerDC>) {
+                Log.d("TAG", "response: $response")
+                if(response.message() == "OK"){
+                    val data = response.body()
+                    val token = data?.token
+                    val id = data?.data?._id
+                    val uname = data?.data?.extension?.username
+                    val name = data?.data?.name?.given
+                    val profData = ProfileDC(uname, name, id, token)
+                    saveProfileData(profData)
+                    Toast.makeText(applicationContext, "Login Success!", Toast.LENGTH_LONG).show()
+                    val moveIntent = Intent(this@MainActivity, PractitionerDashboardActivity::class.java)
+                    startActivity((moveIntent))
+                }
+                else{
+                    loading.isDismiss()
+                    val msg = response.message()
+                    Toast.makeText(applicationContext, "Login Failed! $msg", Toast.LENGTH_LONG).show()
+                }
+            }
+
+            override fun onFailure(call: Call<SinglePractitionerDC>, t: Throwable) {
+                loading.isDismiss()
+                t.printStackTrace()
+                Toast.makeText(applicationContext, "Login Failed!", Toast.LENGTH_LONG).show()
+            }
+
+        })
+    }
+
     private fun LoginReq(username: String, pass: String): Call<PatientsDC> {
         val loginForm = LoginFormDC(username, pass) //create body object
         val  retService: PatientsServices = RetrofitInstance
             .getRetrofitInstance()
             .create(PatientsServices::class.java)
         return retService.Login(loginForm)
+    }
+
+    private fun PracLoginReq(username: String, pass: String): Call<SinglePractitionerDC>{
+        val loginForm = LoginFormDC(username, pass)
+        val retService : PractitionerServices = RetrofitInstance
+            .getRetrofitInstance()
+            .create(PractitionerServices::class.java)
+        return  retService.PractitionerLogin(loginForm)
     }
 
     private fun saveProfileData(data: ProfileDC){
@@ -100,4 +145,5 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             e.printStackTrace()
         }
     }
+
 }
