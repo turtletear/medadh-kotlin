@@ -14,12 +14,14 @@ class PractitionerDashboardActivity : AppCompatActivity() {
 
         val homeFrag = PractitionerHomeFragment()
         val profFrag = PractitionerProfileFragment()
+        makeCurrentFragment(homeFrag)
 
-        bottom_nav_prac.setOnNavigationItemReselectedListener {
+        bottom_nav_prac.setOnNavigationItemSelectedListener {
             when(it.itemId){
                 R.id.it_prac_home -> makeCurrentFragment(homeFrag)
                 R.id.it_prac_profile -> makeCurrentFragment(profFrag)
             }
+            true
         }
     }
 

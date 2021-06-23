@@ -96,6 +96,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     saveProfileData(profData)
                     Toast.makeText(applicationContext, "Login Success!", Toast.LENGTH_LONG).show()
                     val moveIntent = Intent(this@MainActivity, PractitionerDashboardActivity::class.java)
+
                     startActivity((moveIntent))
                 }
                 else{

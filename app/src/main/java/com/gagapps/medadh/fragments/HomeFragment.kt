@@ -9,13 +9,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.gagapps.medadh.ProfileDC
 import com.gagapps.medadh.R
 import com.gagapps.medadh.alarmUtil.AlarmData
-import com.gagapps.medadh.alarmUtil.ListAlarmAdapter
 import com.gagapps.medadh.alarmUtil.ListAlarmHomeAdapter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -109,8 +110,8 @@ class HomeFragment : Fragment() {
         rvHomeAlarm.adapter = listAlarmHomeAdapter
 
         listAlarmHomeAdapter.setOnItemCheckedCallback(object : ListAlarmHomeAdapter.OnItemCheckedCallback{
-            override fun onItemChecked(alarmData: AlarmData, position: Int, isChecked:Boolean) {
-                medTakenLogic(alarmData, isChecked)
+            override fun onItemChecked(alarmData: AlarmData, position: Int, isChecked:Boolean, layout:LinearLayout, stat: TextView) {
+                medTakenLogic(alarmData, isChecked, layout, stat)
 
             }
 
@@ -118,11 +119,15 @@ class HomeFragment : Fragment() {
 
     }
 
-    private fun medTakenLogic(alarmData: AlarmData, isChecked:Boolean){
+    private fun medTakenLogic(
+        alarmData: AlarmData,
+        isChecked: Boolean,
+        layout: LinearLayout,
+        stat: TextView
+    ){
         val calendar: Calendar = Calendar.getInstance()
-        val simpleDataFormat: SimpleDateFormat = SimpleDateFormat("HH:mm")
+        val simpleDataFormat = SimpleDateFormat("HH:mm")
         val currentTime = simpleDataFormat.format(calendar.time)
-
 
         val calendar2: Calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, alarmData.hour)
@@ -131,35 +136,32 @@ class HomeFragment : Fragment() {
         val timeShouldBe = simpleDataFormat.format(calendar2.time)
 
 
-        val calendarDummy: Calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 2)
-            set(Calendar.MINUTE, 30)
-        }
-
-        val calendarDummy2: Calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 1)
-            set(Calendar.MINUTE, 30)
-        }
 
         Log.d("Mantap", "Current Time: ${currentTime}")
         Log.d("Mantap", "Time Should Be: ${timeShouldBe}")
 
-        val diff = calendarDummy.timeInMillis - calendarDummy2.timeInMillis
-        Log.d("Mantap", "Time Diff : ${diff/60000}")
+        val diff = calendar.timeInMillis - calendar2.timeInMillis
+        val seconds = diff / 1000
+        val minutes = seconds / 60
+        val hours = minutes / 60
+        val days = hours / 24
+
+        val minuteDiff = minutes
+        Log.d("Mantap", "Time Diff : ${minutes}")
 
         if(!isChecked){
-            layout_box.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.light_grey))
-            tv_home_status.text = "Oncoming"
+            layout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.light_grey))
+            stat.text = "Oncoming"
         }
         else {
-            val limit: Long = 60
-            if (diff <= limit) {
-                layout_box.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.light_green))
-                tv_home_status.text = "Taken"
+            val limit: Long = 180
+            if (minuteDiff <= limit) {
+                layout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.light_green))
+                stat.text = "Taken"
             }
             else{
-                layout_box.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning_red))
-                tv_home_status.text = "Late"
+                layout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning_red))
+                stat.text = "Late"
             }
 
         }

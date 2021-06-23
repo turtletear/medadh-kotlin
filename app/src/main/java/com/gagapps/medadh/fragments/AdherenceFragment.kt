@@ -179,6 +179,7 @@ class AdherenceFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<MedStateDC>, t: Throwable) {
+                t.printStackTrace()
                 Log.d("medAdh", "<ON FAILURE> Fail to load patient Medication Statement data")
             }
 

@@ -47,15 +47,15 @@
             android:orientation="vertical"
             android:layout_marginTop="30dp"
             >
+
             <TextView
                 android:id="@+id/tv_user_prac_banner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
+                android:text="Hello dr who"
                 android:textColor="@color/black"
                 android:textSize="20dp"
-                android:text="Hellor dr who"
-                />
+                android:textStyle="bold" />
 
         </LinearLayout>
 
