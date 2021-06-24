@@ -107,7 +107,7 @@ class PractitionerHomeFragment : Fragment() {
                     if (data!=null){
                         rvPatient.setHasFixedSize(true)
                         listPatientAdapter = ListPatientAdapter(data.data)
-                        showRecyclerList(data.data, rvPatient)
+                        showRecyclerList(rvPatient)
                     }
                 }
                 else
@@ -136,7 +136,7 @@ class PractitionerHomeFragment : Fragment() {
         }
     }
 
-    private fun showRecyclerList(data: List<Data>, rvHome: RecyclerView){
+    private fun showRecyclerList(rvHome: RecyclerView){
         rvHome.layoutManager = LinearLayoutManager(requireContext())
         rvHome.adapter = listPatientAdapter
 

@@ -133,7 +133,7 @@ class AdherenceFragment : Fragment() {
     private fun initReportEntryArray(report_data: ReportDC): LineData {
         var entryList = arrayListOf<Entry>()
         val reportsList = report_data.data
-        var lineData: LineData = LineData()
+        var lineData = LineData()
         if (reportsList != null) {
             var itr = 0
             for (i in reportsList){
@@ -165,6 +165,7 @@ class AdherenceFragment : Fragment() {
                     val data = response.body()
                     if (data != null) {
                         val msData = data
+
                         var pieData = initMedStateEntryArray(msData)
                         val ttlPercent = getTotalMSPercentage(msData)
                         pieData.setValueFormatter(PercentFormatter(pieChart))
@@ -207,8 +208,8 @@ class AdherenceFragment : Fragment() {
                 else
                     listOfZero.add(0F)
             }//end for
-            val goodAdh = listOfOne.size.toFloat() / totalSize.toFloat() * 100
-            val badAdh = listOfZero.size.toFloat() / totalSize.toFloat() * 100
+            val goodAdh = listOfZero.size.toFloat() / totalSize.toFloat() * 100
+            val badAdh = listOfOne.size.toFloat() / totalSize.toFloat() * 100
             Log.d("medAdh", "Good percentage = ${String.format("%.1f", goodAdh)}")
             Log.d("medAdh", "Bad percentage  = ${String.format("%.1f", badAdh)}")
             pieEntry.add(PieEntry(goodAdh, ""))

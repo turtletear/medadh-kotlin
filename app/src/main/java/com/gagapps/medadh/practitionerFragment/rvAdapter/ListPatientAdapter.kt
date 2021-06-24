@@ -112,7 +112,7 @@ class ListPatientAdapter(private val listPatient: List<Data>): RecyclerView.Adap
                     listOfZero.add(0F)
             }//end for
         }//end if
-        goodAdh = listOfOne.size.toFloat() / totalSize.toFloat() * 100
+        goodAdh = listOfZero.size.toFloat() / totalSize.toFloat() * 100
         return String.format("%.0f", goodAdh)
     }
 }
