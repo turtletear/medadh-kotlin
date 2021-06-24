@@ -93,6 +93,7 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
             bAdapter = BluetoothAdapter.getDefaultAdapter()
             bt_scanDevice.setOnClickListener(this)
             btSwitch.setOnCheckedChangeListener(this)
+            allowLocationDetectionPermissions()
         }catch (e: NullPointerException){
             Toast.makeText(activity, "Device doesn't support Bluetooth", Toast.LENGTH_LONG).show()
         }
@@ -136,7 +137,6 @@ class BluetoothFragment : Fragment(), View.OnClickListener, CompoundButton.OnChe
             Toast.makeText(activity, "Please turn on the Bluetooth", Toast.LENGTH_SHORT).show()
         }//end if
         else {
-            allowLocationDetectionPermissions()
             bluetoothLeScanner?.let { scanner ->
                 if (!scanning) { // Stops scanning after a pre-defined scan period.
                     handler.postDelayed({
