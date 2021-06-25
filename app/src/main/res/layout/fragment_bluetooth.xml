@@ -5,18 +5,69 @@
     android:layout_height="match_parent"
     tools:context=".fragments.BluetoothFragment">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="5dp"
+            >
+
+            <LinearLayout
+                android:layout_width="100dp"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/tv_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:textSize="20dp"
+                    android:text="-">
+
+                </TextView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:gravity="right"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:id="@+id/bluetooth_image"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:src="@drawable/ic_bluetooth"
+                    />
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/btSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:checked="false" />
+            </LinearLayout>
+
+        </LinearLayout>
 
         <Button
-            android:id="@+id/bt_enable"
+            android:id="@+id/bt_scanDevice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Enable Bluetooth"
-            android:layout_centerInParent="true"
+            android:text="get paired device"
+            android:layout_gravity="center"
             />
 
-    </RelativeLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_device_list"
+            android:layout_width="match_parent"
+            android:layout_marginTop="7dp"
+            android:layout_height="wrap_content"
+            tools:listitem="@layout/item_row_device"
+            />
+
+    </LinearLayout>
 
 </FrameLayout>
