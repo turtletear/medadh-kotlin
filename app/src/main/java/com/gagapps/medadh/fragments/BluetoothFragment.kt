@@ -3,6 +3,7 @@ package com.gagapps.medadh.fragments
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -44,6 +45,7 @@ class BluetoothFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
     lateinit var tvStatus: TextView
     lateinit var bAdapter: BluetoothAdapter
     lateinit var clThread: ClientThread
+    lateinit var mSocket: BluetoothSocket
     private val REQUEST_CODE_ENABLE_BT: Int = 1
     private val FINE_LOCATION_PERMISSION_REQUEST: Int = 1001
     private val MY_UUID = UUID.fromString("91ce3659-1535-4b05-a89d-08ca023c8dd5")

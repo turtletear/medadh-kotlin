@@ -61,14 +61,6 @@ class AlarmLogic {
         Log.d("Mantap", "Alarm saved! Alarm ReqCode: ${alarmData.reqCode}")
     }
 
-    fun getAlrmManager(): AlarmManager {
-        return alarmManager
-    }
-
-    fun getAlrmData(): AlarmData {
-        return alarmData
-    }
-
     fun cancelAlarm(){
         alarmManager.cancel(pendIntent)
     }

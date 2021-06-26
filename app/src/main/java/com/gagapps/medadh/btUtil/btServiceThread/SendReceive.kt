@@ -28,13 +28,13 @@ internal class SendReceive(private val bluetoothSocket: BluetoothSocket, private
         }
     }
 
-    fun write(bytes: ByteArray?) {
-        try {
-            outputStream!!.write(bytes)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
+//    fun write(bytes: ByteArray?) {
+//        try {
+//            outputStream!!.write(bytes)
+//        } catch (e: IOException) {
+//            e.printStackTrace()
+//        }
+//    }
 
     init {
         var tempIn: InputStream? = null

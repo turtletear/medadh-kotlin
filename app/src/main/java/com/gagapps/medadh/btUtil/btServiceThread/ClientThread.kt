@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.util.Log
 import android.widget.TextView
-import com.gagapps.medadh.btUtil.BluetoothService
 import java.io.IOException
 import java.util.*
 import android.os.Handler
@@ -14,6 +13,7 @@ import android.os.Looper
 
 class ClientThread(device: BluetoothDevice, bAdapter: BluetoothAdapter, myuuid: UUID, tvStatus: TextView, context: Activity) : Thread() {
     val adapter = bAdapter
+    lateinit var soket: BluetoothSocket
     val cntxt = context
     val tvStat = tvStatus
     private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE){
@@ -26,9 +26,11 @@ class ClientThread(device: BluetoothDevice, bAdapter: BluetoothAdapter, myuuid: 
             try {
                 socket.connect()
                 //manageMyConnectedSocket(socket)
+                //initiate service class here..
                 val handler = Handler(Looper.getMainLooper())
                 val services = SendReceive(socket, handler)
                 services.start()
+                soket = socket
                 Log.d("btDev", "connected")
                 cntxt.runOnUiThread {
                     tvStat.text = "Connected"
@@ -46,5 +48,9 @@ class ClientThread(device: BluetoothDevice, bAdapter: BluetoothAdapter, myuuid: 
         } catch (e: IOException){
             Log.e("btDev", "Could not close the client socket", e)
         }
+    }
+
+    fun getSocket(): BluetoothSocket {
+        return soket
     }
 }

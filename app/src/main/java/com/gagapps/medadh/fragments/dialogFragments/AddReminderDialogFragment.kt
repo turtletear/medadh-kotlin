@@ -91,25 +91,6 @@ class AddReminderDialogFragment: DialogFragment() {
         }
 
         btnSave.setOnClickListener {
-            val hour = picker.hour
-            val minute = picker.minute
-            val dose = textDos.text.toString().toInt()
-            val unit = textUnit.text.toString()
-            val medication = textMed.text.toString()
-            val note = textNote.text.toString()
-
-            //add alarm logic
-            //save alarm data to local storage
-//            val size = alarmList.size
-//            var alarmData : AlarmData
-//            if (size == 0){
-//                alarmData = AlarmData(hour, minute, dose, unit, medication, note,0)
-//            }
-//            else{
-//                alarmData = AlarmData(hour, minute, dose, unit, medication, note,size)
-//            }
-
-
             //dismiss fragment
             doOnSavePress()
             clearForm(textMed, textDos, textUnit, textNote)
