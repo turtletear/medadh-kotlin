@@ -6,12 +6,14 @@ import java.io.InputStream
 import java.io.OutputStream
 import android.os.Handler
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 
 const val STATE_MESSAGE_RECEIVED: Int = 0
 
-internal class SendReceive(private val bluetoothSocket: BluetoothSocket, private val handler: Handler) : Thread() {
+internal class SendReceive(private val bluetoothSocket: BluetoothSocket) : Thread() {
     private val inputStream: InputStream?
     private val outputStream: OutputStream?
+    private var liveData = MutableLiveData<String>()
     override fun run() {
         val BUFFER_SIZE = 1024
         val buffer = ByteArray(BUFFER_SIZE)
@@ -21,20 +23,19 @@ internal class SendReceive(private val bluetoothSocket: BluetoothSocket, private
                 bytes = inputStream!!.read(buffer)
                 val readMsg = String(buffer, 0, bytes)
                 Log.d("btDev", "Data : ${readMsg}")
-                handler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes, -1, buffer).sendToTarget()
+                liveData.postValue(readMsg)
+//                handler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes, -1, buffer).sendToTarget()
             } catch (e: IOException) {
                 e.printStackTrace()
+                break
             }
         }
     }
 
-//    fun write(bytes: ByteArray?) {
-//        try {
-//            outputStream!!.write(bytes)
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//        }
-//    }
+    fun getLiveDat(): MutableLiveData<String> {
+        return liveData
+    }
+
 
     init {
         var tempIn: InputStream? = null

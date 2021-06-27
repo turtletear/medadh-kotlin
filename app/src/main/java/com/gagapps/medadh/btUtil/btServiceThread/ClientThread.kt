@@ -27,14 +27,14 @@ class ClientThread(device: BluetoothDevice, bAdapter: BluetoothAdapter, myuuid: 
                 socket.connect()
                 //manageMyConnectedSocket(socket)
                 //initiate service class here..
-                val handler = Handler(Looper.getMainLooper())
-                val services = SendReceive(socket, handler)
-                services.start()
-                soket = socket
-                Log.d("btDev", "connected")
-                cntxt.runOnUiThread {
-                    tvStat.text = "Connected"
-                }
+                //val handler = Handler(Looper.getMainLooper())
+                //val services = SendReceive(socket, handler)
+                //services.start()
+                //soket = socket
+                //Log.d("btDev", "connected")
+                //cntxt.runOnUiThread {
+                    //tvStat.text = "Connected"
+                //}
             }catch (e: IOException){
                 e.printStackTrace()
                 Log.e("btDev", "Message: ${e}")

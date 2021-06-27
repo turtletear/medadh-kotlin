@@ -1,32 +1,34 @@
 package com.gagapps.medadh.fragments
 
-import android.content.Context
-import android.content.SharedPreferences
+import android.content.*
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.gagapps.medadh.ProfileDC
 import com.gagapps.medadh.R
 import com.gagapps.medadh.alarmUtil.AlarmData
 import com.gagapps.medadh.alarmUtil.ListAlarmHomeAdapter
+import com.gagapps.medadh.btUtil.btService.SendReceiveService
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.fragment_home.*
-import kotlinx.android.synthetic.main.item_row_alarm_home.*
+import androidx.lifecycle.Observer
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.*
-import kotlin.collections.ArrayList
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -47,6 +49,21 @@ class HomeFragment : Fragment() {
     private var alarmList = arrayListOf<AlarmData>()
     private var profileData: ProfileDC? = null
     private lateinit var listAlarmHomeAdapter: ListAlarmHomeAdapter
+    private var isBound: Boolean = false
+    lateinit var myService: SendReceiveService
+    private var liveData = MutableLiveData<String>()
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            val binder = service as SendReceiveService.LocalBinder
+            myService = binder.service
+            isBound = true
+        }
+
+        override fun onServiceDisconnected(name: ComponentName) {
+            isBound = false
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,8 +72,17 @@ class HomeFragment : Fragment() {
             param2 = it.getString(ARG_PARAM2)
         }
         alarmList = loadListData()
-        listAlarmHomeAdapter = ListAlarmHomeAdapter(alarmList)
+        listAlarmHomeAdapter = ListAlarmHomeAdapter(alarmList,this)
         profileData = loadProfileData()
+        val stat = SendReceiveService.serviceStat
+        Log.d("btDev", "status service: ${stat}")
+
+        if(stat == 1){
+            val intent = Intent(activity, SendReceiveService::class.java)
+            activity?.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+
+        }
+
 
     }
 
@@ -89,7 +115,6 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             tv_home_day.text = LocalDate.now().dayOfWeek.toString()
 
@@ -102,8 +127,11 @@ class HomeFragment : Fragment() {
         rvHomeAlarm = view.findViewById(R.id.rv_home_alarm)
         rvHomeAlarm.setHasFixedSize(true)
 
+        getBtThreadData()
+
         showRecyclerList(alarmList)
     }
+
 
     private fun showRecyclerList(dataList: ArrayList<AlarmData>){
         rvHomeAlarm.layoutManager = LinearLayoutManager(requireContext())
@@ -111,7 +139,6 @@ class HomeFragment : Fragment() {
 
         listAlarmHomeAdapter.setOnItemCheckedCallback(object : ListAlarmHomeAdapter.OnItemCheckedCallback{
             override fun onItemChecked(alarmData: AlarmData, position: Int, isChecked:Boolean, layout:LinearLayout, stat: TextView) {
-                medTakenLogic(alarmData, isChecked, layout, stat)
 
             }
 
@@ -135,19 +162,12 @@ class HomeFragment : Fragment() {
         }
         val timeShouldBe = simpleDataFormat.format(calendar2.time)
 
-
-
-        Log.d("Mantap", "Current Time: ${currentTime}")
-        Log.d("Mantap", "Time Should Be: ${timeShouldBe}")
-
         val diff = calendar.timeInMillis - calendar2.timeInMillis
         val seconds = diff / 1000
         val minutes = seconds / 60
         val hours = minutes / 60
-        val days = hours / 24
 
         val minuteDiff = minutes
-        Log.d("Mantap", "Time Diff : ${minutes}")
 
         if(!isChecked){
             layout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.light_grey))
@@ -174,7 +194,6 @@ class HomeFragment : Fragment() {
                 requireActivity().getSharedPreferences("shared preferences", Context.MODE_PRIVATE)
             val gson = Gson()
             val json = sharedPreferences.getString("data Profile", null)
-            //val type: Type = object : TypeToken<ProfileDC?>() {}.type
             profile = gson.fromJson(json, ProfileDC::class.java)
             Log.d("medAdh", "load profile success ${profile.name}")
             return profile
@@ -201,6 +220,14 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun getBtThreadData() {
+        if (this::myService.isInitialized) {
+            liveData = myService.getServiceLiveData()
+            listAlarmHomeAdapter.setLiveDat(liveData)
+            Log.d("btDev", "it's worked!")
+        }
+    }
+
 
     private fun saveListData(dataList: ArrayList<AlarmData>){
         try {
@@ -217,5 +244,6 @@ class HomeFragment : Fragment() {
             e.printStackTrace()
         }
     }
+
 
 }
