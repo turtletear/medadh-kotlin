@@ -72,8 +72,8 @@ class HomeFragment : Fragment() {
             param2 = it.getString(ARG_PARAM2)
         }
         alarmList = loadListData()
-        listAlarmHomeAdapter = ListAlarmHomeAdapter(alarmList,this)
         profileData = loadProfileData()
+        listAlarmHomeAdapter = ListAlarmHomeAdapter(alarmList,this, profileData)
         val stat = SendReceiveService.serviceStat
         Log.d("btDev", "status service: ${stat}")
 
