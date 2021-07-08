@@ -119,6 +119,9 @@ class ProfileAddReport : Fragment() {
             val bcrabl_val = tv_bcrabl_text.text.toString().toInt()
             val wbcell_val = tv_wblood_text.text.toString().toInt()
             val hemoglobin_val = tv_hemoglobin_text.text.toString().toInt()
+            val tromb_val = tv_trombosit_text.text.toString().toInt()
+            val hema_val = tv_hematokrit_text.text.toString().toInt()
+            val eri_val = tv_eritrosit_text.text.toString().toInt()
             val note_val = tv_report_note_text.text.toString()
 
             val subject = profileData?.id
@@ -128,7 +131,10 @@ class ProfileAddReport : Fragment() {
             val bcrabl = BcrAbl(bcrabl_val)
             val hemog = Hemoglobin(hemoglobin_val)
             val wblood = WbloodCell(wbcell_val)
-            val ext = Extension(bcrabl, hemog, note_val, wblood)
+            val trombosit = Trombosit(tromb_val)
+            val hematokrit = Hematokrit(hema_val)
+            val eritrosit = Eritrosit(eri_val)
+            val ext = Extension(bcrabl, hemog, note_val, wblood, trombosit, hematokrit, eritrosit)
 
             val bodyReq = subject?.let { it1 -> ReportBodyReq(effective, ext, media, it1) }
             addReportReq(bodyReq, profileData?.token)
